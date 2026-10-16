@@ -1,0 +1,7 @@
+.idea
+__pycache__/
+*.pyc
+lib/user_conf.yaml
+lib/system_conf.yaml
+*.swp
+.nfs*

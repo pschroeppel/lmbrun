@@ -1,0 +1,32 @@
+meta:
+  # output_base_path: uncomment if you don't want to use default value from user_conf
+  # user_name: uncomment if you don't want to use default value from user_conf
+  is_test: True
+  number_of_runs: 1
+  run_name: dummy_project
+  git_path: /path/to/dummy_project/  # CHANGE THIS TO LOCATION OF YOUR DUMMY PROJECT
+  #  git_remote_url: git@github.com:username/dummy-experiments.git  # CHANGE THIS TO YOUR REMOTE REPOSITORY URL OR LEAVE EMPTY
+  comment: Just some sample run started from a .yaml run config file
+  seed_base: 42
+
+target:
+  which: local
+  slurm:
+    cpus_per_gpu: 1
+    mem: 42M
+    walltime_hrs: "1"
+    job_chain_length: 2
+  torque:
+    ppn: 1
+    gpus: 0
+    mem: 4200mb
+    nodes: 1
+    walltime: "01:00:00"
+    job_chain_length: 4
+
+pre_commands:
+  - echo "Pre commands complete."
+run_commands:
+  - python3 dummy_run.py some_parameter_without_argument --another_param --logdir=%LOGDIR% --param_with_val 42 --test_path_parameter /home --runid=%RUNID% --comment="%COMMENT%" --seed=%SEED%
+  - sleep 3
+  - echo "This is the end of the first run.."

@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import pickle
+from lib.prompt import continue_prompt
+from lib.jobs import Jobs
+
+
+def continue_run():
+
+    parser = argparse.ArgumentParser(prog='lmbcont')
+    parser.add_argument('--same', help='Continue with same parameters as in the last run.', action='store_true')
+    args = parser.parse_args()
+
+    current_dir = os.path.abspath('.')
+    config_path = os.path.join(current_dir, 'last_config.pickle')
+    with open(config_path, 'rb') as config_file:
+        config = pickle.load(config_file)
+
+    if not args.same:
+        continue_prompt(config)
+
+    print("Run id: %s" % config.meta.run_id)
+    print("Run path: %s" % config.meta.run_path)
+    print("Job path: %s" % config.jobs.dir)
+    print("Git tag: %s" % config.meta.git_tag)
+
+    print()
+    print("Continuing run %s." % config.meta.run_id)
+    print()
+
+    ok = Jobs(config).run()
+
+    print()
+
+    if ok:
+        print("Continued run %s" % config.meta.run_id)
+    else:
+        print("Could not continue run %s." % config.meta.run_id)
+    print()
+
+    exit(0)
+
+
+if __name__ == "__main__":
+    continue_run()

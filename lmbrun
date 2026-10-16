@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+from lib.init import init
+from lib.utils import get_extension
+from lib.jobs import Jobs
+
+
+def run():
+    args = sys.argv[1:]
+
+    if '-h' in args or '--help' in args:
+
+        help_message = 'usage: lmbrun [-h] [--prompt] [--comment]\n\n' \
+                       'lmbrun tool.\n\n' \
+                       'optional arguments:\n' \
+                       '\t-h, --help\tshow this help message and exit\n' \
+                       '\t--prompt\tshow prompt to change parameters from the config file\n' \
+                       '\t--comment\tshow prompt to set a comment'
+
+        print(help_message)
+        return
+
+    has_prompt = '--prompt' in args
+    if has_prompt:
+        args.remove('--prompt')
+
+    has_comment = '--comment' in args
+    if has_comment:
+        args.remove('--comment')
+
+    if len(args) == 1 and os.path.isfile(os.path.abspath(args[0])) and args[0].endswith('yaml'):
+        config_path = os.path.abspath(args[0])
+        run_command = None
+
+        if has_prompt:
+            do_prompt = True
+            do_comment_prompt = False
+
+        elif has_comment:
+            do_comment_prompt = True
+            do_prompt = False
+
+        else:
+            do_comment_prompt = False
+            do_prompt = False
+
+    else:
+        config_path = None
+        run_command = " ".join(args)
+        do_prompt = True
+        do_comment_prompt = False
+
+    run_configs = init(config_path=config_path,
+                       run_command=run_command,
+                       do_prompt=do_prompt,
+                       do_comment_prompt=do_comment_prompt)
+    
+    for run_config in run_configs:
+        print("\tStarting %s." % run_config.meta.run_id)
+        print()
+
+        ok = Jobs(run_config).run()
+
+        if ok:
+            print("\tFinished %s" % run_config.meta.run_id)
+        else:
+            print("\tCould not start %s" % run_config.meta.run_id)
+        print()
+
+        run_config.write(os.path.join(run_config.meta.run_path, 'last_config.pickle'))
+
+    exit(0)
+
+
+if __name__ == "__main__":
+    run()

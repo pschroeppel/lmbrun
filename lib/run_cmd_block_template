@@ -1,0 +1,25 @@
+if ${{should_execute}} ; then
+
+  echo
+  echo "Now running command #${{RUN_CMD_CTR}} from directory ${{PWD}} with commands:"
+  echo "{0}"
+
+  trap 'echo "Killing ${{PID}}." ; should_execute=false ; kill -2 ${{PID}} ; wait ${{PID}}' TERM INT
+  set -m
+  {0} &
+  PID=$!
+  echo "PID of the executed commands: ${{PID}}"
+  echo
+  wait ${{PID}}
+  trap - TERM INT
+  set +m
+
+  RUN_CMD_CTR=$((${{RUN_CMD_CTR}}+1))
+
+else
+
+  echo
+  echo "Skip execution of run command #${{RUN_CMD_CTR}}."
+  RUN_CMD_CTR=$((${{RUN_CMD_CTR}}+1))
+
+fi

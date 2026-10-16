@@ -1,0 +1,125 @@
+#!/bin/bash
+
+set -e
+
+LMBEDIT_PATH=$0
+GIT_TAG=$1
+GIT_REMOTE_URL=$2
+
+if [ -z ${GIT_TAG} ]; then
+  echo "You must specify the git tag."
+  exit 1
+fi
+
+if [ -z ${GIT_REMOTE_URL} ]; then
+  echo "You must specify the url of the git repository."
+  exit 1
+fi
+
+echo "Initializing edit of ${GIT_TAG} from repository ${GIT_REMOTE_URL}."
+
+# create temporary directory to edit from:
+TMP_DIR=$(mktemp -d -t ${GIT_TAG}-XXXXXXXXXX)
+echo "Running from temporary directory: ${TMP_DIR}"
+cd ${TMP_DIR}
+
+# restore code from git tag:
+echo "Restoring code with tag ${GIT_TAG} from ${GIT_REMOTE_URL}"
+git clone --branch ${GIT_TAG} ${GIT_REMOTE_URL} .
+
+GIT_TAG_DESC=$(git tag -n | grep -Fw ${GIT_TAG})
+GIT_TAG_DESC=($GIT_TAG_DESC)
+GIT_MESSAGE=${GIT_TAG_DESC[@]:2}
+
+cat > lmbcommit <<EOF
+#!/bin/bash
+GIT_TAG="${GIT_TAG}i"
+GIT_REMOTE_URL="${GIT_REMOTE_URL}"
+GIT_MESSAGE="${GIT_MESSAGE}"
+TMP_DIR="${TMP_DIR}"
+
+echo "Commiting \${GIT_TAG} to repository \${GIT_REMOTE_URL} with message \${GIT_MESSAGE}."
+echo
+
+git tag -d \${GIT_TAG}
+git push origin --delete \${GIT_TAG}
+git add -A
+git reset lmbcommit
+git reset lmbcancel
+git reset lmboverride
+git commit -m "\${GIT_TAG} \${GIT_MESSAGE}"
+git tag -a \${GIT_TAG} -m "\${GIT_TAG} \${GIT_MESSAGE}"
+git push origin -f \${GIT_TAG}
+
+echo "Do you want to remove \${TMP_DIR} ?"
+select yn in "Yes" "No"; do
+    case \$yn in
+        Yes ) rm -rf \${TMP_DIR}; echo "Done."; exit 0;;
+        No ) echo "\${TMP_DIR} not deleted."; echo "Done."; exit 1;;
+    esac
+done
+
+EOF
+
+cat > lmboverride <<EOF
+#!/bin/bash
+GIT_TAG="${GIT_TAG}"
+GIT_REMOTE_URL="${GIT_REMOTE_URL}"
+GIT_MESSAGE="${GIT_MESSAGE}"
+TMP_DIR="${TMP_DIR}"
+
+echo "Overriding \${GIT_TAG} in repository \${GIT_REMOTE_URL} with message \${GIT_MESSAGE}."
+echo
+
+git tag -d \${GIT_TAG}
+git push origin --delete \${GIT_TAG}
+git add -A
+git reset lmbcommit
+git reset lmbcancel
+git reset lmboverride
+git commit -m "\${GIT_TAG} \${GIT_MESSAGE}"
+git tag -a \${GIT_TAG} -m "\${GIT_TAG} \${GIT_MESSAGE}"
+git push origin -f \${GIT_TAG}
+
+echo "Do you want to remove \${TMP_DIR} ?"
+select yn in "Yes" "No"; do
+    case \$yn in
+        Yes ) rm -rf \${TMP_DIR}; echo "Done."; exit 0;;
+        No ) echo "\${TMP_DIR} not deleted."; echo "Done."; exit 1;;
+    esac
+done
+
+EOF
+
+cat > lmbcancel <<EOF
+#!/bin/bash
+GIT_TAG="${GIT_TAG}"
+GIT_REMOTE_URL="${GIT_REMOTE_URL}"
+GIT_MESSAGE="${GIT_MESSAGE}"
+TMP_DIR="${TMP_DIR}"
+
+echo "Canceling edit of \${GIT_TAG} from repository \${GIT_REMOTE_URL}."
+echo
+
+echo "Do you want to remove \${TMP_DIR} ?"
+select yn in "Yes" "No"; do
+    case \$yn in
+        Yes ) rm -rf \${TMP_DIR}; echo "Done."; exit 0;;
+        No ) echo "Canceling aborted."; exit 1;;
+    esac
+done
+
+EOF
+
+chmod +x lmboverride
+chmod +x lmbcommit
+chmod +x lmbcancel
+
+echo
+echo "To edit:"
+echo "cd ${TMP_DIR}"
+echo "Edit.."
+echo "./lmbcommit or ./lmboverride or ./lmbcancel"
+echo
+
+exit 0

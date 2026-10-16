@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import pickle
+from lib.jobs import Jobs
+
+
+def stat():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--path', type=str, help='path of the run for which the status should be printed', default='.')
+    args = parser.parse_args()
+
+    current_dir = os.path.abspath(args.path)
+    config_path = os.path.join(current_dir, 'last_config.pickle')
+    with open(config_path, 'rb') as config_file:
+        config = pickle.load(config_file)
+
+    print("Run id: %s" % config.meta.run_id)
+    print("Run base path: %s" % config.meta.run_base_path)
+    print("Git tag: %s" % config.meta.git_tag)
+
+    j = Jobs(config)
+    if j.has_current():
+        print("Currently running: %s" % j.get_current())
+    else:
+        print("Currently running: %s" % j.has_current())
+
+    print("All jobs finished: %s" % j.check_all_finished())
+
+    print()
+    print("Job status: ")
+    j.print_status()
+
+
+if __name__ == "__main__":
+    stat()

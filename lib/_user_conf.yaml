@@ -1,0 +1,54 @@
+# set your default parameters for the lmbrun tools in a file called
+# user_conf.yaml (excluded from the git repository via .gitignore)
+# which should be structured as follows:
+
+config_format: default
+meta:
+  output_base_path: /path/to/where/you/want/your/experiment/outputs
+  user_name: your_username
+  is_test: True
+  number_of_runs: 1
+  seed_base: 42
+  increment_seed: True
+  run_name:  # usually makes sense to leave empty
+  git_path:  # usually makes sense to leave empty
+  git_remote_url:  # probably makes sense to leave empty
+  comment:  # usually makes sense to leave empty
+target:
+  which: local
+  slurm:
+    user_name: your_username_to_log_in_at_slurm
+    partitions: [] # leave empty or specify default partition
+    num_gpus: 1
+    gpu_type:  # usually makes sense to leave empty
+    cpus_per_gpu: 8
+    mem: 16G  # a number directly followed by a unit (K, M, G or T), e.g. 64G; no white space
+    walltime_hrs: "24"  # quotation marks are required here!
+    signal_str:  # leave empty or set for example to B:TERM@300 if you want to send a SIGTERM signal 300 seconds before the end of the job
+    additional_gres:  # usually makes sense to leave empty
+    nodelist:  # usually makes sense to leave empty; specify node names if you want to restrict to specific nodes
+    exclude_nodelist:  # usually makes sense to leave empty; specify node names to exclude
+    nice:  # usually makes sense to leave empty; higher values mean lower priority (passed to sbatch via --nice)
+    job_chain_length: 1
+  torque:
+    user_name: your_username_to_log_in_at_torque
+    hostlist: []  # usually makes sense to leave empty
+    ppn: 8
+    gpus: 1
+    mem: 1000mb  # a number directly followed by a unit (mb or gb), e.g. 4200mb; no white space
+    nodes: 1
+    walltime: "24:00:00"  # quotation marks are required here!
+    job_chain_length: 1
+    properties: []  # usually makes sense to leave empty
+    mail_notifications: p  # options are: n, p, a, b, e, f; for their meaning, see man page of qsub; combinations are possible
+    queue:  # leave empty or specify default queue
+  ssh:
+    connect_string: ssh -t login ssh -t computenode  # the command that lets you connect to your machine
+pre_commands:  # usually makes sense to leave empty
+#  - a list of commands to be executed before the
+#  - actual run commands,
+#  - for example to configure your shell:
+#  - source /your/virtualenv/bin/activate
+run_commands:  # usually makes sense to leave empty
+#  - a list
+#  - of run commands

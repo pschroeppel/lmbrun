@@ -1,0 +1,17 @@
+# set the system/cluster specific values for the lmbrun tools in a file called
+# system_conf.yaml (excluded from the git repository via .gitignore)
+# which should be structured as follows:
+
+slurm:
+  login_host:  # ssh host used to submit SLURM jobs, e.g. the name of a host from your ~/.ssh/config
+  partitions: []  # names of the available partitions; values not in this list are ignored
+  gres: []  # names of additional generic resources (e.g. localtmp); values not in this list are ignored
+  gpu_types: []  # names of the available gpu types; values not in this list are ignored
+torque:
+  login_host:  # ssh host used to submit torque jobs
+  job_id_regex:  # regex matching the job id printed by qsub, in single quotes, e.g. '^\d+\.yourhost\.example\.org$'
+  nodes: []  # names of the available nodes; values not in this list are ignored
+  properties: []  # names of the available node properties; values not in this list are ignored
+  queues: []  # names of the available queues; values not in this list are ignored
+  default_gpu_queue:  # queue used if no queue is set and the job requests gpus and at most 1 cpu
+  default_cpu_queue:  # queue used if no queue is set otherwise
